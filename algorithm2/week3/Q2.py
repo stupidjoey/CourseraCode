@@ -7,34 +7,26 @@ def main():
     starttime = datetime.datetime.now()
 
     currentPath = sys.path[0]
-    dataPath = currentPath+'//knapsack1.txt'
+    dataPath = currentPath+'//knapsack_big.txt'
     nodeList,n,W = LoadData(dataPath)
     nodeArray = np.array(nodeList)
-    A = np.zeros((1, W+1))
+    A = np.zeros((2, W+1))
+
     for i in range(1,n+1):
         print i
-        valueI = int(nodeArray[i, 0])
-        weightI = int(nodeArray[i, 1])
+        valueI = nodeArray[i, 0]
+        weightI = nodeArray[i, 1]
+        
+        # xIdx21 = xrange(weightI, W+1)        
+        # xIdx22 = xrange(0, W+1 - weightI)
+        
+        for x in range(weightI, W+1):
+            A[1,x] = max(A[0,x], A[0, x-weightI] + valueI)
+        
+        A[0,:] = A[1,:]
+        
 
-        xIdx21 = range(weightI, W+1)
-        xIdx22 = range(0, W+1 - weightI)
-        compare = A[0,xIdx21] + valueI > A[0, xIdx22]
-
-        xIdx2 = xIdx21 * compare
-        xIdx2[xIdx2 == 0 ] = []
-        print len(list(xIdx2))
-        print len(list(xIdx2 - weightI))
-
-
-        print A[0, list(xIdx2)]
-        print 'ha'
-        print valueI
-        A[0, list(xIdx2)] = A[0, list(xIdx2 - weightI) ]
-        A[0, list(xIdx2)] = A[0, list(xIdx2)] + 1111
-        # A[0,list(xIdx2)] += valueI
-
-    print A[0,W]
-
+    print A[1,W]
 
     endtime = datetime.datetime.now()
     print 'passed time is %f' % (endtime - starttime).seconds
