@@ -7,10 +7,12 @@ def main():
     starttime = datetime.datetime.now()
 
     currentPath = sys.path[0]
-    dataPath = currentPath+'//knapsacktt.txt'
+    dataPath = currentPath+'//knapsack_big.txt'
     nodeList,n,W = LoadData(dataPath)
     A = {}
-    solve(n,W,nodeList,A)   
+    IXset = set()
+    stack = [(n,W)]
+    search(nodeList,A,IXset,stack)
     print A[(n,W)]
 
     
@@ -20,27 +22,68 @@ def main():
     endtime = datetime.datetime.now()
     print 'passed time is %f' % (endtime - starttime).seconds
 
-def solve(i,x,nodeList,A):
+def search(nodeList,A,IXset,stack):
+    while(len(stack) >0):
+        i,x = stack[0]
+        if i<=0:
+            A[(i,x)] = 0
+            IXset.add((i,x))
+            stack.pop(0)
+        else:
+            v = nodeList[i][0]
+            w = nodeList[i][1]
+            if w > x:
+                if (i-1,x) not in IXset:
+                    stack.insert(0,(i-1,x))
+                    continue
+                    
+                A[(i,x)] = A[(i-1,x)]
+                stack.pop(0)
+                IXset.add((i,x))            
+            else:
+                if (i-1,x) not in IXset :
+                    stack.insert(0,(i-1,x))
+                    continue
+                if (i-1,x-w) not in IXset:
+                    stack.insert(0,(i-1,x-w))
+                    continue
+                    
+                A[(i,x)] = max( A[(i-1,x)], A[(i-1,x-w)]+ v )
+                stack.pop(0)
+                IXset.add((i,x))     
+
+
+            
+   
+   
+    
+def solve(i,x,nodeList,A,IXset):
     if i <= 0:
         A[(i,x)] = 0
-        return 0
+        IXset.add((i,x))
+        return A[(i,x)]
     else:
         v = nodeList[i][0]
         w = nodeList[i][1]
         if w > x:
-            if (i-1,x) not in A.keys():
-                A[(i-1,x)] = solve(i-1, x, nodeList,A)
-                A[(i,x)] = A[(i-1,x)]
-            else:
-                A[(i,x)] = A[(i-1,x)]
-                
+            if (i-1,x) not in IXset:
+                A[(i-1,x)] = solve(i-1, x, nodeList,A,IXset)
+                IXset.add((i-1,x))
+            A[(i,x)] = A[(i-1,x)]
+            
+         
+              
         else:
-            if (i-1,x) in A.keys() and (i-1,x-w) in A.keys():
-                A[(i,x)] = max( A[(i-1,x)], A[(i-1,x-w)] + v )
-            else:
-                A[(i-1,x)] = solve(i-1,x,nodeList,A)
-                A[(i-1,x-w)] = solve(i-1,x-w,nodeList,A)
-                A[(i,x)] = max( A[(i-1,x)], A[(i-1,x-w)]+ v )
+            if (i-1,x) not in IXset :
+                A[(i-1,x)] = solve(i-1,x,nodeList,A,IXset)
+                IXset.add((i-1, x))
+            if (i-1,x-w) not in IXset:
+                A[(i-1,x-w)] = solve(i-1,x-w,nodeList,A,IXset)   
+                IXset.add((i-1, x-w))                
+            A[(i,x)] = max( A[(i-1,x)], A[(i-1,x-w)]+ v )
+            
+        IXset.add((i,x))
+        return A[(i,x)]
             
     
 
