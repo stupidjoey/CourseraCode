@@ -5,7 +5,7 @@ import datetime
 
 ''' use the floyd_warshall algorithm to solve the problem'''
 ''' use n*n*1 to store A '''
-INF = 999999
+INF = float('inf')
 def main():
     starttime = datetime.datetime.now()
     

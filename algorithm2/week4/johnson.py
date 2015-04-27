@@ -5,12 +5,13 @@ import datetime
 import heapq
 
 ''' use the johnson algorithm to solve the problem'''
+INF = float('inf')
 
 def main():
     starttime = datetime.datetime.now()
-    
+
     currentpath = sys.path[0]
-    datapath = currentpath +'\large.txt'
+    datapath = currentpath +'\g3.txt'
     graph,headgraph,tailgraph,vertex_num,edge_num = loaddata(datapath)
     johnson(graph,headgraph,tailgraph,vertex_num,edge_num)
     
@@ -20,43 +21,45 @@ def main():
 
     
 def johnson(graph,headgraph,tailgraph,v_num,e_num):
-    #  step 1 add a new tail vertex s into the headgraph
-    # turn it into headgraph_prim
+
     print 'step 1 add a new tail vertex s into the headgraph'
     s = v_num + 1
-    headgraph_prim = headgraph.copy()
     for headv in xrange(1, v_num + 1):       
-        edges = headgraph_prim[headv][:]
-        edges.append([s,headv,0])
-        headgraph_prim[headv] = edges
-    headgraph_prim[s] = []     
+        edges = headgraph[headv][:]
+        vertexset = edges[0][:]
+        costset = edges[1][:]
+        vertexset.append(s)
+        costset.append(0)
+        edges = [vertexset,costset]
+        headgraph[headv] = edges
+    headgraph[s] = [[],[]]     
+
+
+    print 'step 2 run bellmam_ford on headgraph'
+    v_num_prim = v_num + 1 # include the s
+    negflag, P = bellman_ford(headgraph, v_num_prim, s)
     
-    # step 2 run bellmam_ford on headgraph_prim
-    print 'step 2 run bellmam_ford on headgraph_prim'
-    v_num_prim = v_num + 1
-    negflag, P = bellman_ford(headgraph_prim, v_num_prim, s)
-    
-    if negflag == True:
-        print 'there is a negtive cycle'
-    else:
-        # step 3 update the cost by adding pu - pv
-        print 'step 3 update the cost by adding pu - pv'
-        for edge,cost in graph.iteritems():
-            u = edge[0]
-            v = edge[1]
-            cost += P[u] - P[v]
-            graph[edge] = cost
+    # if negflag == True:
+        # print 'there is a negtive cycle'
+    # else:
+ 
+        # print 'step 3 update the cost by adding pu - pv'
+        # for edge,cost in graph.iteritems():
+            # u = edge[0]
+            # v = edge[1]
+            # cost += P[u] - P[v]
+            # graph[edge] = cost
             
-        # step 4 for each v run dijkstra on graph
-        print 'step 4 for each v run dijkstra on graph'
-        A = dijkstra(graph,tailgraph,v_num)
+  
+        # print 'step 4 for each v run dijkstra on graph'
+        # A = dijkstra(graph,tailgraph,v_num)
         
-        # step 5 restore the distance
-        print 'step 5 restore the distance'
-        for u in xrange(1, v_num+1):
-            for v in xrange(1, v_num+1):
-                A[u,v] = A[u,v] - P[u] + P[v]
-        print A[1:,1:].min()
+
+        # print 'step 5 restore the distance'
+        # for u in xrange(1, v_num+1):
+            # for v in xrange(1, v_num+1):
+                # A[u,v] = A[u,v] - P[u] + P[v]
+        # print A[1:,1:].min()
 
 def dijkstra(graph,tailgraph,v_num):
     A = np.zeros((v_num+1, v_num+1))
@@ -73,7 +76,7 @@ def dijkstra(graph,tailgraph,v_num):
         allV = set(range(1,v_num+1))
         leftV = allV - adjV - set([s])
         for v in leftV:
-            cost = 999999
+            cost = INF
             heapq.heappush(myheap,(cost,s,v))
         while len(X) !=  v_num:
             minnode = heapq.heappop(myheap)
@@ -92,30 +95,32 @@ def dijkstra(graph,tailgraph,v_num):
             
         
 def bellman_ford(headgraph, v_num, s):
-    A = np.ones((2, v_num+1)) * 999999
-    A[0, s] = 0
-    for i in xrange(1, v_num+1):
-        for v in xrange(1, v_num+1):
-            case1 = A[0, v]
-            case2 = 999999
-            edges = headgraph[v]
-            for edge in edges:
-                w = edge[0]
-                cost = edge[2]
-                if A[0, w] + cost <= case2:
-                    case2 = A[0, w] + cost
-            A[1,v] = min(case1, case2)
-            
-        if i != v_num:
-            A[0,:] = A[1,:]
-            
-    # check for negative cycle
+    A = np.ones((1, v_num+1)) * INF
+    A[0,s] = 0
     negflag = False
-    for v in xrange(1, v_num+1):
-        if A[0,v] != A[1,v]:
+    for i in xrange(1, v_num+1):
+        print i
+        case2mat = np.zeros((1,v_num+1))
+        for v in xrange(1, v_num+1):
+            case1 = A[0,v]
+            edges = headgraph[v]
+            vertexset = edges[0][:]
+            costset = edges[1][:]
+            case2 = A[0,vertexset] + np.array(costset)
+            if len(case2) > 0 : 
+                mincase2 = case2.min()
+            else: 
+                mincase2 = INF
+            case2mat[0,v] = mincase2
+        idx = case2mat < A
+        diffsum = idx.sum() 
+        if i == v_num  and diffsum > 0:
             negflag = True
             break
-    return negflag, A[0,:]
+        A[0,idx[0,:]] = case2mat[0,idx[0,:]]  
+            
+
+    return negflag, A
     
 
         
@@ -127,7 +132,7 @@ def loaddata(datapath):
     vertex_num = int(basic_info[0])
     edge_num = int(basic_info[1])
     graph = {}
-    headgraph = {}.fromkeys(xrange(1,vertex_num+1),[])
+    headgraph = {}.fromkeys(xrange(1,vertex_num+1),[[],[]])
     tailgraph = {}.fromkeys(xrange(1,vertex_num+1),set())
     for line in dataset[1:]:
         data = line[:-1].split(' ')
@@ -138,14 +143,19 @@ def loaddata(datapath):
         graph[(tailv,headv)] = cost
         
         edges = headgraph[headv][:]
-        edges.append([tailv,headv,cost])
+        vertexset = edges[0][:]
+        costset = edges[1][:]
+        vertexset.append(tailv)
+        costset.append(cost)
+        edges= [vertexset,costset] 
         headgraph[headv] = edges
         
-        edges = tailgraph[tailv].copy()
-        edges.add(headv) # only store the head
-        tailgraph[tailv] = edges
+               
+        edgess = tailgraph[tailv].copy()
+        edgess.add(headv) # only store the head
+        tailgraph[tailv] = edgess
         
-        
+
     return graph,headgraph,tailgraph,vertex_num,edge_num
     
     
@@ -153,4 +163,5 @@ def loaddata(datapath):
     
     
 if __name__=='__main__':
-    main()
+    import profile
+    profile.run("main()")
