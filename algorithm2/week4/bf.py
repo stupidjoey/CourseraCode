@@ -11,7 +11,7 @@ def main():
     starttime = datetime.datetime.now()
     
     currentpath = sys.path[0]
-    datapath = currentpath +'\g1.txt'
+    datapath = currentpath +'\g3.txt'
     graph,vertex_num,edge_num = loaddata(datapath)
     bellman_ford(graph,vertex_num,edge_num)
     
@@ -40,6 +40,9 @@ def bellman_ford(graph,v_num,e_num):
             diffsum = idx.sum() 
             if i == v_num  and diffsum > 0:
                 negflag = True
+                break
+            elif i < v_num-1 and diffsum == 0:
+                # print i
                 break
             A[idx[0,:],s] = case2mat[idx] 
 

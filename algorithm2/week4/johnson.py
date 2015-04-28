@@ -11,7 +11,7 @@ def main():
     starttime = datetime.datetime.now()
 
     currentpath = sys.path[0]
-    datapath = currentpath +'\g3.txt'
+    datapath = currentpath +'\large.txt'
     graph,headgraph,tailgraph,vertex_num,edge_num = loaddata(datapath)
     johnson(graph,headgraph,tailgraph,vertex_num,edge_num)
     
@@ -99,7 +99,6 @@ def bellman_ford(headgraph, v_num, s):
     A[0,s] = 0
     negflag = False
     for i in xrange(1, v_num+1):
-        print i
         case2mat = np.zeros((1,v_num+1))
         for v in xrange(1, v_num+1):
             case1 = A[0,v]
@@ -116,6 +115,9 @@ def bellman_ford(headgraph, v_num, s):
         diffsum = idx.sum() 
         if i == v_num  and diffsum > 0:
             negflag = True
+            break
+        elif i < v_num-1 and diffsum == 0:
+            print i
             break
         A[0,idx[0,:]] = case2mat[0,idx[0,:]]  
             
