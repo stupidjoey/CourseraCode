@@ -1,13 +1,13 @@
 import matplotlib.pyplot as plt
 import sys
-
+import numpy as np
 
 def main():
     currentpath = sys.path[0]
-    datapath = currentpath +'\\tsp.txt'
+    datapath = currentpath +'//tsp.txt'
     distmat,vx,vy,vnum = load_data(datapath)
     plt.scatter(vx,vy)
-    plt.plot()
+    plt.show()
  
 
 
