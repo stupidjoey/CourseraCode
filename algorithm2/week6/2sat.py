@@ -1,13 +1,16 @@
 import sys
+import numpy as np 
+
 
 def main():
     currentpath = sys.path[0]
-    datapath = currentpath + '\\2sat_test2.txt'
+    datapath = currentpath + '//2sat_test2.txt'
     graph,graph_rev,v_num = load_data(datapath)
+    print graph_rev
     finishtime,time = first_DFS(graph_rev,v_num)
     print finishtime
-    scc = second_DFS(graph,v_num,finishtime)
-    print scc
+    # scc = second_DFS(graph,v_num,finishtime)
+    # print scc
     
 
 def second_DFS(graph,v_num,finishtime):
@@ -36,19 +39,16 @@ def second_DFS(graph,v_num,finishtime):
 def first_DFS(graph_rev,v_num):
     finishtime = {}  # key:time value: id
     time = 0
-    visited = {}.fromkeys( range(1, 2*v_num+1), 0)
+    visited = np.zeros((2*v_num+1,1))
     visit_path = []
     for i in range(v_num*2,0,-1):
         if visited[i] != 1:
-            visited[i] = 1
-            stack = []
-            adj = graph_rev[i][:]
-            for vertex in adj:
-                if visited[vertex] != 1:
-                    stack.append(vertex)           
+            stack = [i]
             while len(stack) != 0:
-                current_vertex = stack.pop()
-                visited[current_vertex] = 1
+                print stack
+                current_vertex = stack[-1]
+                if visited[current_vertex] == 1:
+                    continue
                 adj_vertex = graph_rev[current_vertex][:]
                 temp_count = 0 
                 for vertex in adj_vertex:
@@ -58,8 +58,8 @@ def first_DFS(graph_rev,v_num):
                 if temp_count == 0:
                     time += 1
                     finishtime[time] = current_vertex
-            time +=1
-            finishtime[time] = i 
+                    stack.pop()
+                    visited[current_vertex] = 1
             
     return finishtime, time            
 
