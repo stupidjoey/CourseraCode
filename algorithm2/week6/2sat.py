@@ -4,62 +4,83 @@ import numpy as np
 
 def main():
     currentpath = sys.path[0]
-    datapath = currentpath + '//2sat_test2.txt'
+    datapath = currentpath + '//2sat6.txt'
     graph,graph_rev,v_num = load_data(datapath)
-    print graph_rev
     finishtime,time = first_DFS(graph_rev,v_num)
-    print finishtime
-    # scc = second_DFS(graph,v_num,finishtime)
+    scc = second_DFS(graph,v_num,finishtime)
     # print scc
+    sat_flag = True
+    for key in scc.keys():
+        vertexset = scc[key]
+        flag = check_sat(vertexset,v_num)
+        if flag == False:
+            sat_flag = False
+            break
+    if sat_flag == False:
+        print 'unsat'
+    else:
+        print 'sat'
+
+def check_sat(vertexset,v_num):
+    setlen = len(vertexset)
+    if setlen == 1:
+        return True
+    else:
+        for i in range(0,setlen-1):
+            for j in range(i+1,setlen):
+                diff = vertexset[i] - vertexset[j]
+                if abs(diff) == v_num:
+                    print vertexset[i],vertexset[j]
+                    return False
+
     
 
 def second_DFS(graph,v_num,finishtime):
     scc = {}
-    visited = {}.fromkeys( range(1, 2*v_num+1), 0)
+    visited = [0] * (v_num*2 + 1)
     for time in range( 2*v_num,0,-1):
-        s = finishtime[time]
-        scc.setdefault(s,[]).append(s)
-        visited[s] = 1
-        adj = graph[s][:]
-        stack = []
-        for vertex in adj:
-            if visited[vertex] != 1:
-                stack.append(vertex)    
-        while len(stack) != 0:
-            current_vertex = stack.pop()
-            scc.setdefault(s,[]).append(current_vertex)
-            visited[current_vertex] = 1
-            adj_vertex = graph_rev[current_vertex][:]
-            for vertex in adj_vertex:
-                if visited[vertex] != 1:
-                    stack.append(vertex)
-
+        s = finishtime[time]     
+        if visited[s] != 1:
+            stack = [s]
+            while len(stack) != 0:
+                current_vertex = stack[-1]
+                visited[current_vertex] = 1
+                adj_vertex = graph[current_vertex][:]
+                temp_count = 0 
+                for vertex in adj_vertex:
+                    if visited[vertex] != 1 and visited[vertex] != 0.5:
+                        visited[vertex] = 0.5
+                        stack.append(vertex)
+                        temp_count += 1
+                if temp_count == 0:
+                    stack.pop()
+                    scc.setdefault(s,[]).append(current_vertex)
+        
     return scc     
     
 def first_DFS(graph_rev,v_num):
     finishtime = {}  # key:time value: id
     time = 0
-    visited = np.zeros((2*v_num+1,1))
+    visited = [0] * (v_num*2 + 1)
     visit_path = []
     for i in range(v_num*2,0,-1):
         if visited[i] != 1:
             stack = [i]
             while len(stack) != 0:
-                print stack
                 current_vertex = stack[-1]
-                if visited[current_vertex] == 1:
-                    continue
+                visited[current_vertex] = 1
                 adj_vertex = graph_rev[current_vertex][:]
                 temp_count = 0 
                 for vertex in adj_vertex:
-                    if visited[vertex] != 1:
+                    if visited[vertex] != 1 and visited[vertex] != 0.5:
+                        visited[vertex] = 0.5
                         stack.append(vertex)
                         temp_count += 1
                 if temp_count == 0:
                     time += 1
                     finishtime[time] = current_vertex
                     stack.pop()
-                    visited[current_vertex] = 1
+                    
             
     return finishtime, time            
 
